@@ -4,21 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Maze Generator and Solver</title>
-    <style>
-      body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-family: Arial, sans-serif;
-        background-color: #f0f0f0;
-      }
-      #controls {
-        margin: 20px;
-      }
-      canvas {
-        border: 2px solid black;
-      }
-    </style>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <h1>Maze Generator and Solver</h1>
@@ -28,54 +14,6 @@
     </div>
     <canvas id="mazeCanvas" width="500" height="500"></canvas>
 
-    <script>
-      const canvas = document.getElementById("mazeCanvas");
-      const ctx = canvas.getContext("2d");
-      const cellSize = 20;
-      const rows = Math.floor(canvas.height / cellSize);
-      const cols = Math.floor(canvas.width / cellSize);
-      let maze = [];
-
-      function createGrid() {
-        maze = Array.from({ length: rows }, () => Array(cols).fill(0));
-      }
-
-      function generateMaze() {
-        createGrid();
-        // Very basic example of generating a random maze
-        for (let y = 0; y < rows; y++) {
-          for (let x = 0; x < cols; x++) {
-            maze[y][x] = Math.random() > 0.5 ? 1 : 0; // Randomly make walls
-          }
-        }
-        drawMaze();
-      }
-
-      function drawMaze() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for (let y = 0; y < rows; y++) {
-          for (let x = 0; x < cols; x++) {
-            if (maze[y][x] === 1) {
-              ctx.fillStyle = "black";
-            } else {
-              ctx.fillStyle = "white";
-            }
-            ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-            ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
-          }
-        }
-      }
-
-      function solveMaze() {
-        // Placeholder for solving the maze (you could use BFS/DFS)
-        // For now, just color a simple straight path for demo purposes
-        ctx.fillStyle = "blue";
-        for (let i = 0; i < rows; i++) {
-          if (maze[i][0] === 0) {
-            ctx.fillRect(0, i * cellSize, cellSize, cellSize);
-          }
-        }
-      }
-    </script>
+    <script src="Script.js"></script>
   </body>
 </html>
