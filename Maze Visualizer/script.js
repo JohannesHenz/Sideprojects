@@ -7,7 +7,7 @@ const cols = Math.floor(canvas.width / cellSize); //1010 pixels / 10 pixels = 10
 let maze = [];
 
 function createGrid() {
-  maze = Array.from({ length: rows }, () => Array(cols).fill(1));
+  maze = Array.from({ length: rows }, () => Array(cols).fill(0));
 }
 
 const directions = {
@@ -32,26 +32,32 @@ function generateMaze() {
 	-Last Visited Cell
   */
   createGrid();
-  for (let i = 0; i < maze.length; i++) {
-    for (let j = 0; j < maze.length; j++) {
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
       //top rim
-      if (i == 0 || i == maze.length) {
+      if (i === 0 || i === rows || i === cols) {
         maze[i][j] = 0;
+      }
+      if (i % 2 === 0 || j % 2 === 0) {
+        maze[i][j] = 1;
       }
     }
   }
-
-  console.table(maze);
+  drawMaze();
 }
 
 function drawMaze() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      var cellValue = maze[i][j];
+      if (cellValue === 1) {
+        ctx.fillStyle = "black";
+      } else if (cellValue === 0) {
+        ctx.fillStyle = "white";
+      }
 
-	for (let i = 0; i < maze.length; i++) {
-		for (let j = 0; j < maze.length; j++) {
-			if (maze[i][j] == 1)
-			{
-				
-			}
-		}
-	}
+      ctx.fillRect(j * cellSize, i * cellSize, cellSize, cellSize);
+    }
+  }
 }
