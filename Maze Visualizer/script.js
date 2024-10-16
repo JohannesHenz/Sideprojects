@@ -5,6 +5,7 @@ const cellSize = 10;
 const rows = Math.floor(canvas.height / cellSize); //1010 pixels / 10 pixels = 101 rows
 const cols = Math.floor(canvas.width / cellSize); //1010 pixels / 10 pixels = 101 cols
 let maze = [];
+let visited = [];
 
 function createGrid() {
   maze = Array.from({ length: rows }, () => Array(cols).fill(0));
@@ -19,7 +20,7 @@ const directions = {
 
 function generateMaze() {
   /*
-    1. Choose Random Starting Position
+    1. Choose Random Starting Position 
     2. Generate Random Direction (RD)
 	3. Check if RD is a Wall -> if yes remove RD from pool of directions and repeat step 2
 	4. Check if RD is in the Visited Cells List -> if yes remove RD from pool of directions and repeat step 2
@@ -31,6 +32,35 @@ function generateMaze() {
 	-Array of visited Cells
 	-Last Visited Cell
   */
+  initMaze();
+  let startingPoint;
+  let whichEdge = Math.floor(Math.random() * 4);
+  console.log("Which Edge for Starting: ", whichEdge);
+  let randStart = Math.floor(Math.random() * 101);
+  console.log("Where on the Edge: ", randStart);
+  switch (whichEdge) {
+    case 0:
+      startingPoint = maze[randStart][0];
+      break;
+    case 1:
+      startingPoint = maze[rows][randStart];
+      break;
+    case 2:
+      startingPoint = maze[randStart][cols];
+      break;
+    case 3:
+      startingPoint = maze[0][randStart];
+      break;
+
+    default:
+      startingPoint = maze[0][0];
+      break;
+  }
+  console.log("Starting Point on the Edge: ", startingPoint);
+  drawMaze();
+}
+
+function initMaze() {
   createGrid();
   for (let i = 0; i < rows; i++) {
     for (let j = 0; j < cols; j++) {
@@ -43,7 +73,6 @@ function generateMaze() {
       }
     }
   }
-  drawMaze();
 }
 
 function drawMaze() {
