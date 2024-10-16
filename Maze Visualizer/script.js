@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 const canvas = document.getElementById("mazeCanvas");
 const ctx = canvas.getContext("2d");
-const cellSize = 20;
-const rows = Math.floor(canvas.height / cellSize); //500 pixels / 20 pixels = 25 rows
-const cols = Math.floor(canvas.width / cellSize); //500 pixels / 20 pixels = 25 cols
+const cellSize = 10;
+const rows = Math.floor(canvas.height / cellSize); //1010 pixels / 10 pixels = 101 rows
+const cols = Math.floor(canvas.width / cellSize); //1010 pixels / 10 pixels = 101 cols
 let maze = [];
 
 function createGrid() {
-  maze = Array.from({ length: rows }, () => Array(cols).fill(0));
+  maze = Array.from({ length: rows }, () => Array(cols).fill(1));
 }
 
 const directions = {
@@ -31,4 +31,27 @@ function generateMaze() {
 	-Array of visited Cells
 	-Last Visited Cell
   */
+  createGrid();
+  for (let i = 0; i < maze.length; i++) {
+    for (let j = 0; j < maze.length; j++) {
+      //top rim
+      if (i == 0 || i == maze.length) {
+        maze[i][j] = 0;
+      }
+    }
+  }
+
+  console.table(maze);
+}
+
+function drawMaze() {
+
+	for (let i = 0; i < maze.length; i++) {
+		for (let j = 0; j < maze.length; j++) {
+			if (maze[i][j] == 1)
+			{
+				
+			}
+		}
+	}
 }
