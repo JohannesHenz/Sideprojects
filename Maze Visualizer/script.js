@@ -6,16 +6,17 @@ const rows = Math.floor(canvas.height / cellSize); //1010 pixels / 10 pixels = 1
 const cols = Math.floor(canvas.width / cellSize); //1010 pixels / 10 pixels = 101 cols
 let maze = [];
 let visited = [];
+let counter = 0;
 
 function createGrid() {
   maze = Array.from({ length: rows }, () => Array(cols).fill(0));
 }
 
 const directions = {
-  N: [-1, 0], // North: move up one row aka 0
-  E: [0, 1], // East: move right one column aka 1
-  S: [1, 0], // South: move down one row aka 2
-  W: [0, -1], // West: move left one column aka 3
+  N: [-2, 0], // North: move up one row aka 0
+  E: [0, 2], // East: move right one column aka 1
+  S: [2, 0], // South: move down one row aka 2
+  W: [0, -2], // West: move left one column aka 3
 };
 
 function generateMaze() {
@@ -36,8 +37,8 @@ function generateMaze() {
   initMaze();
   chooseStartingPosition();
   //console.log("Starting Point on the Edge: ", startingPoint);
-  walkThroughMaze();
 
+  walkThroughMaze();
   drawMaze();
 }
 
@@ -94,8 +95,18 @@ function chooseStartingPosition() {
 function walkThroughMaze() {
   //while (visited.length !== 625) {
   const whichWay = shuffleDirection();
+  let currentPos = visited[counter];
+  maze[currentPos[0]][currentPos[1]] = 3;
+  let newPos = currentPos.map((num, index) => num + whichWay[index]);
+  visited.push(newPos);
+  maze[newPos[0]][newPos[1]] = 2;
 
-  console.log("Visited: ", visited[0]);
+  console.log("Current Position: ", newPos);
+
+  console.log("Visited: ", visited[counter]);
+  counter++;
+  drawMaze();
+  return newPos;
 }
 
 function shuffleDirection() {
@@ -117,6 +128,8 @@ function drawMaze() {
         ctx.fillStyle = "white";
       } else if (cellValue === 2) {
         ctx.fillStyle = "red";
+      } else if (cellValue === 3) {
+        ctx.fillStyle = "grey";
       }
 
       ctx.fillRect(j * cellSize, i * cellSize, cellSize, cellSize);
