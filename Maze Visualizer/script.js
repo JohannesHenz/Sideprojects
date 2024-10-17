@@ -13,10 +13,10 @@ function createGrid() {
 }
 
 const directions = {
-  N: [-2, 0], // North: move up one row aka 0
-  E: [0, 2], // East: move right one column aka 1
-  S: [2, 0], // South: move down one row aka 2
-  W: [0, -2], // West: move left one column aka 3
+  N: [-1, 0], // North: move up one row aka 0
+  E: [0, 1], // East: move right one column aka 1
+  S: [1, 0], // South: move down one row aka 2
+  W: [0, -1], // West: move left one column aka 3
 };
 
 function generateMaze() {
@@ -94,10 +94,22 @@ function chooseStartingPosition() {
 
 function walkThroughMaze() {
   //while (visited.length !== 625) {
-  const whichWay = shuffleDirection();
+  let whichWay = shuffleDirection();
   let currentPos = visited[counter];
+
   maze[currentPos[0]][currentPos[1]] = 3;
-  let newPos = currentPos.map((num, index) => num + whichWay[index]);
+  let middlePos = currentPos.map((num, index) => num + whichWay[index]);
+  maze[middlePos[0]][middlePos[1]] = 3;
+  let newPos = currentPos.map((num, index) => num + whichWay[index] * 2);
+  while (maze[newPos[0]][newPos[1]] === 3) {
+    whichWay = shuffleDirection();
+    currentPos = visited[counter];
+
+    maze[currentPos[0]][currentPos[1]] = 3;
+    middlePos = currentPos.map((num, index) => num + whichWay[index]);
+    maze[middlePos[0]][middlePos[1]] = 3;
+    newPos = currentPos.map((num, index) => num + whichWay[index] * 2);
+  }
   visited.push(newPos);
   maze[newPos[0]][newPos[1]] = 2;
 
