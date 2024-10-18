@@ -46,11 +46,18 @@ function initMaze() {
   for (let i = 0; i < rows; i++) {
     for (let j = 0; j < cols; j++) {
       //top rim
-      if (i === 0 || i === rows || i === cols) {
-        maze[i][j] = 0;
-      }
       if (i % 2 === 0 || j % 2 === 0) {
         maze[i][j] = 1;
+      }
+      if (
+        j === 0 ||
+        i === 0 ||
+        i === rows - 1 ||
+        i === cols - 1 ||
+        j === rows - 1 ||
+        j === cols - 1
+      ) {
+        maze[i][j] = 5;
       }
     }
   }
@@ -94,6 +101,7 @@ function chooseStartingPosition() {
 
 function walkThroughMaze() {
   //while (visited.length !== 625) {
+  let escapeCounter = 0;
   let whichWay = shuffleDirection();
   let currentPos = visited[counter];
 
@@ -101,7 +109,21 @@ function walkThroughMaze() {
   let middlePos = currentPos.map((num, index) => num + whichWay[index]);
   maze[middlePos[0]][middlePos[1]] = 3;
   let newPos = currentPos.map((num, index) => num + whichWay[index] * 2);
-  while (maze[newPos[0]][newPos[1]] === 3) {
+  console.log("Current Pos[0] + Which Way[0] = ", currentPos[0] + whichWay[0]);
+  console.log("Current Pos[1] + Which Way[1] = ", currentPos[1] + whichWay[1]);
+  if (
+    currentPos[0] + whichWay[0] > 50 ||
+    currentPos[0] + whichWay[0] < 0 ||
+    currentPos[1] + whichWay[1] > 50 ||
+    currentPos[1] + whichWay[1] < 0
+  ) {
+    console.warn("This is a wall");
+  }
+  while (
+    maze[newPos[0]][newPos[1]] === 3 ||
+    maze[newPos[0]][newPos[1]] === 5 ||
+    escapeCounter > 4
+  ) {
     whichWay = shuffleDirection();
     currentPos = visited[counter];
 
@@ -109,15 +131,20 @@ function walkThroughMaze() {
     middlePos = currentPos.map((num, index) => num + whichWay[index]);
     maze[middlePos[0]][middlePos[1]] = 3;
     newPos = currentPos.map((num, index) => num + whichWay[index] * 2);
+    console.log("Choosing new Direction: ", newPos);
+    //
+    //
+    escapeCounter++;
   }
+
   visited.push(newPos);
   maze[newPos[0]][newPos[1]] = 2;
-
   console.log("Current Position: ", newPos);
 
   console.log("Visited: ", visited[counter]);
   counter++;
   drawMaze();
+  console.table(maze);
   return newPos;
 }
 
@@ -142,6 +169,8 @@ function drawMaze() {
         ctx.fillStyle = "red";
       } else if (cellValue === 3) {
         ctx.fillStyle = "grey";
+      } else if (cellValue === 5) {
+        ctx.fillStyle = "black";
       }
 
       ctx.fillRect(j * cellSize, i * cellSize, cellSize, cellSize);
