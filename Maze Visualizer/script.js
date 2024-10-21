@@ -12,12 +12,12 @@ function createGrid() {
   maze = Array.from({ length: rows }, () => Array(cols).fill(0));
 }
 
-const directions = {
-  N: [-1, 0], // North: move up one row aka 0
-  E: [0, 1], // East: move right one column aka 1
-  S: [1, 0], // South: move down one row aka 2
-  W: [0, -1], // West: move left one column aka 3
-};
+const directions = [
+  { name: "N", delta: [-1, 0] },
+  { name: "E", delta: [0, 1] },
+  { name: "S", delta: [1, 0] },
+  { name: "W", delta: [0, -1] },
+]; //Array of objects with each object having two properties
 
 function generateMaze() {
   /*
@@ -38,8 +38,9 @@ function generateMaze() {
   chooseStartingPosition();
   //console.log("Starting Point on the Edge: ", startingPoint);
 
-  walkThroughMaze();
+  //walkThroughMaze();
   drawMaze();
+  console.table(maze);
 }
 
 function initMaze() {
@@ -100,10 +101,13 @@ function chooseStartingPosition() {
 }
 
 function walkThroughMaze() {
-  //while (visited.length !== 625) {
   let escapeCounter = 0;
+
   let whichWay = shuffleDirection();
   let currentPos = visited[counter];
+
+  console.log(IsThisValid(currentPos, whichWay));
+  /*
 
   maze[currentPos[0]][currentPos[1]] = 3;
   let middlePos = currentPos.map((num, index) => num + whichWay[index]);
@@ -140,20 +144,73 @@ function walkThroughMaze() {
   visited.push(newPos);
   maze[newPos[0]][newPos[1]] = 2;
   console.log("Current Position: ", newPos);
-
+  
   console.log("Visited: ", visited[counter]);
   counter++;
   drawMaze();
   console.table(maze);
   return newPos;
+  */
+}
+
+function checkForWall(currentPos, whichWay) {
+  console.log("Where am I now: ", currentPos);
+  console.log("Which Way Variable: ", whichWay);
+
+  if (
+    currentPos[0] + whichWay[0] >= 50 ||
+    currentPos[0] + whichWay[0] <= 0 ||
+    currentPos[1] + whichWay[1] >= 50 ||
+    currentPos[1] + whichWay[1] <= 0
+  ) {
+    console.warn("This is a Wall!");
+    return true; //When the next Step is a wall return true
+  }
+}
+
+function haveIBeenThere(currentPos, whichWay) {
+  console.log("Current Position[0]: ", currentPos[0]);
+  console.log("Current Position[1]: ", currentPos[1]);
+  console.log("Which Way[0]: ", whichWay[0]);
+  console.log("Which Way[1]: ", whichWay[1]);
+  let firstElement = currentPos[0] + whichWay[0];
+  console.log("First Element: ", firstElement);
+  let secondElement = currentPos[1] + whichWay[1];
+  console.log("Second Element: ", secondElement);
+  const nextStep = maze[firstElement][secondElement];
+  console.log("Next Step is: ", nextStep);
+  if (nextStep === 3) {
+    console.warn("This has cell has been visited before!");
+    return true; //When the next Step has been visited return true
+  }
+}
+
+function IsThisValid(currentPos, whichWay) {
+  if (
+    !checkForWall(currentPos, whichWay) &&
+    !haveIBeenThere(currentPos, whichWay)
+  ) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 function shuffleDirection() {
+  /*
+  let directionCopy = directions.slice();
+  while (directionCopy > 0) {
+    let randomDirection = Math.floor(Math.random() * directionCopy.length);
+
+    const cardinalDirection = directionCopy[randomDirection];
+  }
+  */
   let randDirection = Math.floor(Math.random() * 4);
   const directionsArray = Object.values(directions);
   const cardinalDirection = directionsArray[randDirection];
-  console.log("Choosen Direction: ", cardinalDirection);
   return cardinalDirection;
+
+  //TO DO: Fix this method !!!!!!!!!!!!
 }
 
 function drawMaze() {
