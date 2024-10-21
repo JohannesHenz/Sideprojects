@@ -7,6 +7,7 @@ const cols = Math.floor(canvas.width / cellSize); //1010 pixels / 10 pixels = 10
 let maze = [];
 let visited = [];
 let counter = 0;
+let failed = 0;
 
 function createGrid() {
   maze = Array.from({ length: rows }, () => Array(cols).fill(0));
@@ -36,7 +37,6 @@ function generateMaze() {
   createGrid();
   initMaze();
   chooseStartingPosition();
-  //console.log("Starting Point on the Edge: ", startingPoint);
 
   //walkThroughMaze();
   drawMaze();
@@ -103,54 +103,48 @@ function chooseStartingPosition() {
 function walkThroughMaze() {
   let escapeCounter = 0;
 
-  let whichWay = shuffleDirection();
-  let currentPos = visited[counter];
+  while (counter < 100 || failed < 200) {
+    let whichWay = shuffleDirection();
+    let currentPos = visited[counter];
 
-  console.log(IsThisValid(currentPos, whichWay));
-  /*
+    console.log("Where am I now: ", currentPos);
+    console.log("Which Way next: ", whichWay);
 
-  maze[currentPos[0]][currentPos[1]] = 3;
-  let middlePos = currentPos.map((num, index) => num + whichWay[index]);
-  maze[middlePos[0]][middlePos[1]] = 3;
-  let newPos = currentPos.map((num, index) => num + whichWay[index] * 2);
-  console.log("Current Pos[0] + Which Way[0] = ", currentPos[0] + whichWay[0]);
-  console.log("Current Pos[1] + Which Way[1] = ", currentPos[1] + whichWay[1]);
-  if (
-    currentPos[0] + whichWay[0] > 50 ||
-    currentPos[0] + whichWay[0] < 0 ||
-    currentPos[1] + whichWay[1] > 50 ||
-    currentPos[1] + whichWay[1] < 0
-  ) {
-    console.warn("This is a wall");
+    if (IsThisValid(currentPos, whichWay)) {
+      maze[currentPos[0]][currentPos[1]] = 3;
+      let middlePos = currentPos.map(
+        (num, index) => num + whichWay.delta[index]
+      );
+      maze[middlePos[0]][middlePos[1]] = 3;
+      let newPos = currentPos.map(
+        (num, index) => num + whichWay.delta[index] * 2
+      );
+      console.log(
+        "New Position on the Y-Axis: ",
+        currentPos[0] + whichWay.delta[0]
+      );
+      console.log(
+        "New Position on the X-Axis: ",
+        currentPos[1] + whichWay.delta[1]
+      );
+
+      visited.push(newPos);
+      maze[newPos[0]][newPos[1]] = 2;
+      console.log("Current Position: ", newPos);
+
+      console.table("Visited: ", visited);
+      counter++;
+      drawMaze();
+    } else {
+      failed++;
+      whichWay = shuffleDirection();
+      drawMaze();
+    }
   }
-  while (
-    maze[newPos[0]][newPos[1]] === 3 ||
-    maze[newPos[0]][newPos[1]] === 5 ||
-    escapeCounter > 4
-  ) {
-    whichWay = shuffleDirection();
-    currentPos = visited[counter];
-
-    maze[currentPos[0]][currentPos[1]] = 3;
-    middlePos = currentPos.map((num, index) => num + whichWay[index]);
-    maze[middlePos[0]][middlePos[1]] = 3;
-    newPos = currentPos.map((num, index) => num + whichWay[index] * 2);
-    console.log("Choosing new Direction: ", newPos);
-    //
-    //
-    escapeCounter++;
-  }
-
-  visited.push(newPos);
-  maze[newPos[0]][newPos[1]] = 2;
-  console.log("Current Position: ", newPos);
-  
-  console.log("Visited: ", visited[counter]);
-  counter++;
-  drawMaze();
   console.table(maze);
-  return newPos;
-  */
+}
+
+function BackTrack(currentPos, whichWay) {
 }
 
 function checkForWall(currentPos, whichWay) {
@@ -158,40 +152,44 @@ function checkForWall(currentPos, whichWay) {
   console.log("Which Way Variable: ", whichWay);
 
   if (
-    currentPos[0] + whichWay[0] >= 50 ||
-    currentPos[0] + whichWay[0] <= 0 ||
-    currentPos[1] + whichWay[1] >= 50 ||
-    currentPos[1] + whichWay[1] <= 0
+    currentPos[0] + whichWay.delta[0] >= 50 ||
+    currentPos[0] + whichWay.delta[0] <= 0 ||
+    currentPos[1] + whichWay.delta[1] >= 50 ||
+    currentPos[1] + whichWay.delta[1] <= 0
   ) {
     console.warn("This is a Wall!");
     return true; //When the next Step is a wall return true
+  } else {
+    return false; //When the next Step is not a wall return false
   }
 }
 
 function haveIBeenThere(currentPos, whichWay) {
-  console.log("Current Position[0]: ", currentPos[0]);
-  console.log("Current Position[1]: ", currentPos[1]);
-  console.log("Which Way[0]: ", whichWay[0]);
-  console.log("Which Way[1]: ", whichWay[1]);
-  let firstElement = currentPos[0] + whichWay[0];
-  console.log("First Element: ", firstElement);
-  let secondElement = currentPos[1] + whichWay[1];
-  console.log("Second Element: ", secondElement);
-  const nextStep = maze[firstElement][secondElement];
-  console.log("Next Step is: ", nextStep);
-  if (nextStep === 3) {
+  let firstElement = currentPos[0] + whichWay.delta[0] * 2;
+  let secondElement = currentPos[1] + whichWay.delta[1] * 2;
+  let nextStep = maze[firstElement][secondElement];
+  console.log("Value of Cell in next Step is: ", nextStep);
+  if (nextStep === 3 || nextStep === 2) {
     console.warn("This has cell has been visited before!");
     return true; //When the next Step has been visited return true
+  } else {
+    return false; //When the next Step has not been visited return false
   }
 }
 
 function IsThisValid(currentPos, whichWay) {
+  let Walls = checkForWall(currentPos, whichWay);
+  let BeenThere = haveIBeenThere(currentPos, whichWay);
+  console.log("Is this a wall? T/F", Walls);
+  console.log("Has this been visited? T/F", BeenThere);
   if (
     !checkForWall(currentPos, whichWay) &&
     !haveIBeenThere(currentPos, whichWay)
   ) {
+    console.log("This Move is Valid!");
     return true;
   } else {
+    console.log("This Move is Invalid!");
     return false;
   }
 }
@@ -199,10 +197,19 @@ function IsThisValid(currentPos, whichWay) {
 function shuffleDirection() {
   /*
   let directionCopy = directions.slice();
-  while (directionCopy > 0) {
+  while (directionCopy.length > 0) {
     let randomDirection = Math.floor(Math.random() * directionCopy.length);
 
     const cardinalDirection = directionCopy[randomDirection];
+    if (IsThisValid(currentPos, whichWay)) {
+      return cardinalDirection;
+    } else {
+      delete directionCopy[randomDirection];
+      console.log(
+        "Copy of Directions Array after one is deleted: ",
+        directionCopy
+      );
+    }
   }
   */
   let randDirection = Math.floor(Math.random() * 4);
