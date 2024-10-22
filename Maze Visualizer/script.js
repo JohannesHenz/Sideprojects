@@ -22,8 +22,8 @@ const directions = [
 
 function generateMaze() {
   /*
-    1. Choose Random Starting Position ✅
-    2. Generate Random Direction (RD) ✅
+	1. Choose Random Starting Position ✅
+	2. Generate Random Direction (RD) ✅
 	3. Check if RD is a Wall -> if yes remove RD from pool of directions and repeat step 2
 	4. Check if RD is in the Visited Cells List -> if yes remove RD from pool of directions and repeat step 2
 	5. If There is no Valid Cell to move to, go to the previously visited cell and start from step 2 again
@@ -104,7 +104,7 @@ function walkThroughMaze() {
   let escapeCounter = 0;
 
   while (counter < 100 || failed < 200) {
-    let whichWay = shuffleDirection();
+    let whichWay = initalShuffle();
     let currentPos = visited[counter];
 
     console.log("Where am I now: ", currentPos);
@@ -137,15 +137,14 @@ function walkThroughMaze() {
       drawMaze();
     } else {
       failed++;
-      whichWay = shuffleDirection();
+      whichWay = shuffleDirection(whichWay, currentPos);
       drawMaze();
     }
   }
   console.table(maze);
 }
 
-function BackTrack(currentPos, whichWay) {
-}
+function BackTrack(currentPos, whichWay) {}
 
 function checkForWall(currentPos, whichWay) {
   console.log("Where am I now: ", currentPos);
@@ -194,8 +193,7 @@ function IsThisValid(currentPos, whichWay) {
   }
 }
 
-function shuffleDirection() {
-  /*
+function shuffleDirection(currentPos, whichWay) {
   let directionCopy = directions.slice();
   while (directionCopy.length > 0) {
     let randomDirection = Math.floor(Math.random() * directionCopy.length);
@@ -211,13 +209,15 @@ function shuffleDirection() {
       );
     }
   }
-  */
+
+  //TO DO: Fix this method !!!!!!!!!!!!
+}
+
+function initalShuffle() {
   let randDirection = Math.floor(Math.random() * 4);
   const directionsArray = Object.values(directions);
   const cardinalDirection = directionsArray[randDirection];
   return cardinalDirection;
-
-  //TO DO: Fix this method !!!!!!!!!!!!
 }
 
 function drawMaze() {
