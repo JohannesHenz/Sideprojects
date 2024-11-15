@@ -36,9 +36,8 @@ function generateMaze() {
   */
   createGrid();
   initMaze();
-  chooseStartingPosition();
-
-  //walkThroughMaze();
+  const [posX, posY] = chooseStartingPosition();
+  walkThroughMaze(posX, posY);
   drawMaze();
   console.table(maze);
 }
@@ -65,6 +64,8 @@ function initMaze() {
 }
 
 function chooseStartingPosition() {
+  let xPos;
+  let yPos;
   let whichEdge = Math.floor(Math.random() * 4 + 1);
   console.log("Which Edge for Starting: ", whichEdge);
   let randStart = Math.floor(Math.random() * 50 + 1);
@@ -79,18 +80,26 @@ function chooseStartingPosition() {
   switch (whichEdge) {
     case 1:
       maze[1][randStart] = 2; //north wall
+      xPos = randStart;
+      yPos = maze[1];
       visited.push([1, randStart]);
       break;
     case 2:
       maze[randStart][rows - 2] = 2; // east wall
+      xPos = rows - 2;
+      yPos = randStart;
       visited.push([randStart, rows - 2]);
       break;
     case 3:
       maze[cols - 2][randStart] = 2; //south wall
+      xPos = randStart;
+      yPos = cols - 2;
       visited.push([cols - 2, randStart]);
       break;
     case 4:
       maze[randStart][1] = 2; //west wall
+      xPos = 1;
+      yPos = randStart;
       visited.push([randStart, 1]);
       break;
 
@@ -98,58 +107,30 @@ function chooseStartingPosition() {
       maze[0][0] = 2;
       break;
   }
+  return [xPos, yPos];
 }
 
-function walkThroughMaze() {
-  let escapeCounter = 0;
+function walkThroughMaze(x, y) {
+  console.log("X Position: %s, Y Position: %s", x, y);
 
-  while (counter < 100 || failed < 200) {
-    let whichWay = initalShuffle();
-    let currentPos = visited[counter];
+  // mark (x, y) as visited in maze;
+  // create local copy of directions;
+  // while directions remain in local copy:
+  //   select and remove random direction;
+  //   calculate newX and newY;
+  //   if IsThisValid(newX, newY):
+  //     remove wall between (x, y) and (newX, newY);
+  //     walkThroughMaze(newX, newY); // recursive call
+  // function returns when no valid directions remain
 
-    console.log("Where am I now: ", currentPos);
-    console.log("Which Way next: ", whichWay);
+  drawMaze();
 
-    if (IsThisValid(currentPos, whichWay)) {
-      maze[currentPos[0]][currentPos[1]] = 3;
-      let middlePos = currentPos.map(
-        (num, index) => num + whichWay.delta[index]
-      );
-      maze[middlePos[0]][middlePos[1]] = 3;
-      let newPos = currentPos.map(
-        (num, index) => num + whichWay.delta[index] * 2
-      );
-      console.log(
-        "New Position on the Y-Axis: ",
-        currentPos[0] + whichWay.delta[0]
-      );
-      console.log(
-        "New Position on the X-Axis: ",
-        currentPos[1] + whichWay.delta[1]
-      );
-
-      visited.push(newPos);
-      maze[newPos[0]][newPos[1]] = 2;
-      console.log("Current Position: ", newPos);
-
-      console.table("Visited: ", visited);
-      counter++;
-      drawMaze();
-    } else {
-      failed++;
-      whichWay = shuffleDirection(whichWay, currentPos);
-      drawMaze();
-    }
-  }
-  console.table(maze);
+  console.log("Visited List: ", visited);
+  console.info("----------------New Step begins here---------------------");
+  //console.table(maze);
 }
-
-function BackTrack(currentPos, whichWay) {}
 
 function checkForWall(currentPos, whichWay) {
-  console.log("Where am I now: ", currentPos);
-  console.log("Which Way Variable: ", whichWay);
-
   if (
     currentPos[0] + whichWay.delta[0] >= 50 ||
     currentPos[0] + whichWay.delta[0] <= 0 ||
@@ -200,6 +181,7 @@ function shuffleDirection(currentPos, whichWay) {
 
     const cardinalDirection = directionCopy[randomDirection];
     if (IsThisValid(currentPos, whichWay)) {
+      console.log("Copy of Directions Array currently: ", directionCopy);
       return cardinalDirection;
     } else {
       delete directionCopy[randomDirection];
