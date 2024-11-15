@@ -81,7 +81,7 @@ function chooseStartingPosition() {
     case 1:
       maze[1][randStart] = 2; //north wall
       xPos = randStart;
-      yPos = maze[1];
+      yPos = 1;
       visited.push([1, randStart]);
       break;
     case 2:
