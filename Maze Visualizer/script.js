@@ -112,19 +112,43 @@ function chooseStartingPosition() {
 
 function walkThroughMaze(x, y) {
   console.log("X Position: %s, Y Position: %s", x, y);
-
   // mark (x, y) as visited in maze;
+  visited.push([x, y]);
+  let currentPos = [x, y];
   // create local copy of directions;
+  let copyOfDirections = directions.slice();
   // while directions remain in local copy:
-  //   select and remove random direction;
-  //   calculate newX and newY;
-  //   if IsThisValid(newX, newY):
-  //     remove wall between (x, y) and (newX, newY);
-  //     walkThroughMaze(newX, newY); // recursive call
-  // function returns when no valid directions remain
+  while (copyOfDirections.length > 0) {
+    //   select and remove random direction;
+    let randomDirection = Math.floor(Math.random() * copyOfDirections.length);
+    //   calculate newX and newY;
+    let newX = x + copyOfDirections[randomDirection].delta[0] * 2;
+    console.log("New X: ", newX);
+    let newY = y + copyOfDirections[randomDirection].delta[1] * 2;
+    console.log("New Y: ", newY);
+    //   if IsThisValid(newX, newY):
+    if (IsThisValid(currentPos, copyOfDirections[randomDirection])) {
+      //     mark (newX, newY) as visited;
+      visited.push([newX, newY]);
+      //     remove wall between (x, y) and (newX, newY);
+      maze[newX][newY] = 3;
+      maze[x + copyOfDirections[randomDirection].delta[0]][
+        y + copyOfDirections[randomDirection].delta[1]
+      ] = 3;
+      //     walkThroughMaze(newX, newY); // recursive call
+      walkThroughMaze(newX, newY);
+    } else {
+      //     remove direction from local copy;
+      delete copyOfDirections[randomDirection];
+    }
 
-  drawMaze();
+    copyOfDirections.splice(randomDirection, 1);
+    //     remove wall between (x, y) and (newX, newY);
+    //     walkThroughMaze(newX, newY); // recursive call
+    // function returns when no valid directions remain
 
+    drawMaze();
+  }
   console.log("Visited List: ", visited);
   console.info("----------------New Step begins here---------------------");
   //console.table(maze);
