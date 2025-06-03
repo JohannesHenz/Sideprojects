@@ -4,10 +4,20 @@ const ctx = canvas.getContext("2d");
 const cellSize = 20;
 const rows = Math.floor(canvas.height / cellSize); //500 pixels / 20 pixels = 25 rows
 const cols = Math.floor(canvas.width / cellSize); //500 pixels / 20 pixels = 25 cols
+
 let maze = [];
 
+// create a grid where every cell keeps track of its surrounding walls
 function createGrid() {
-  maze = Array.from({ length: rows }, () => Array(cols).fill(0));
+  maze = Array.from({ length: rows }, () =>
+    Array.from({ length: cols }, () => ({
+      visited: false,
+      N: true,
+      E: true,
+      S: true,
+      W: true,
+    }))
+  );
 }
 
 const directions = {
@@ -16,6 +26,16 @@ const directions = {
   S: [1, 0], // South: move down one row aka 2
   W: [0, -1], // West: move left one column aka 3
 };
+
+// shuffle helper that returns the direction keys in random order
+function shuffleDirectionKeys() {
+  const keys = Object.keys(directions);
+  for (let i = keys.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [keys[i], keys[j]] = [keys[j], keys[i]];
+  }
+  return keys;
+}
 
 /*
 async function generateMaze() {
@@ -61,45 +81,53 @@ async function generateMaze() {
 //DFS with Backtracking
 async function generateMaze() {
   createGrid();
-  let stack = [];
-  let startingPoint = [0, 0];
-  maze[startingPoint[0]][startingPoint[1]] = 1; // Mark the starting point as visited
-  stack.push(startingPoint);
+  const stack = [];
+  const start = [0, 0];
+  maze[start[0]][start[1]].visited = true;
+  stack.push(start);
 
   while (stack.length > 0) {
-    let currentPoint = stack[stack.length - 1];
-    let directions = shuffleDirections(); // Shuffle directions to ensure randomness
+    const [y, x] = stack[stack.length - 1];
+    const order = shuffleDirectionKeys();
     let moved = false;
 
-    for (let direction of directions) {
-      let newPoint = [
-        currentPoint[0] + direction[0],
-        currentPoint[1] + direction[1],
-      ];
+    for (const key of order) {
+      const dir = directions[key];
+      const ny = y + dir[0];
+      const nx = x + dir[1];
 
       if (
-        newPoint[0] >= 0 &&
-        newPoint[0] < rows &&
-        newPoint[1] >= 0 &&
-        newPoint[1] < cols &&
-        maze[newPoint[0]][newPoint[1]] === 0
+        ny >= 0 &&
+        ny < rows &&
+        nx >= 0 &&
+        nx < cols &&
+        !maze[ny][nx].visited
       ) {
-        // Move to the new point
-        maze[newPoint[0]][newPoint[1]] = 1;
-        stack.push(newPoint);
+        removeWall([y, x], [ny, nx], key);
+        maze[ny][nx].visited = true;
+        stack.push([ny, nx]);
         moved = true;
         break;
       }
     }
 
     if (!moved) {
-      // If no valid moves, backtrack
       stack.pop();
     }
 
-    drawMaze(currentPoint); // Pass the current point to drawMaze
-    await sleep(100); // Adjust the delay time as needed
+    drawMaze([y, x]);
+    await sleep(20);
   }
+
+  drawMaze(start);
+}
+
+function removeWall(current, next, dirKey) {
+  const opposites = { N: "S", S: "N", E: "W", W: "E" };
+  const [y, x] = current;
+  const [ny, nx] = next;
+  maze[y][x][dirKey] = false;
+  maze[ny][nx][opposites[dirKey]] = false;
 }
 
 function shuffleDirections() {
@@ -120,7 +148,7 @@ function movePlayer(direction) {
     currentPosition[1] + direction[1],
   ];
 
-  if (checkForUsedPathsAndWalls(newPoint, path)) {
+  if (checkForUsedPathsAndWalls(newPoint)) {
     currentPosition = newPoint;
     path.push(currentPosition);
     drawMazeVisual(currentPosition);
@@ -137,68 +165,56 @@ function chooseDirection() {
 }
 
 function checkForUsedPathsAndWalls(newPoint) {
-  if (
-    newPoint[0] < 0 ||
-    newPoint[0] >= rows ||
-    newPoint[1] < 0 ||
-    newPoint[1] >= cols
-  ) {
-    //check for walls
+  const [ny, nx] = newPoint;
+  const [cy, cx] = currentPosition;
+
+  if (ny < 0 || ny >= rows || nx < 0 || nx >= cols) {
     return false;
   }
 
-  return true;
-}
+  if (ny === cy - 1 && nx === cx) return !maze[cy][cx].N;
+  if (ny === cy + 1 && nx === cx) return !maze[cy][cx].S;
+  if (ny === cy && nx === cx + 1) return !maze[cy][cx].E;
+  if (ny === cy && nx === cx - 1) return !maze[cy][cx].W;
 
-function checkForUsedPaths(newPoint, path) {
-  const latestElement = path[path.length - 1];
-  // Check if the newPoint has already been visited
-  if (newPoint[0] === latestElement[0] && newPoint[1] === latestElement[1]) {
-    return false;
-  }
-  return true;
+  return false;
 }
 
 function drawMaze(currentPoint) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
-      // Draw the current cell in red
+      const cell = maze[y][x];
+
       if (y === currentPoint[0] && x === currentPoint[1]) {
         ctx.fillStyle = "red";
-        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
       } else {
-        ctx.fillStyle = "white"; // Default path color
-        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+        ctx.fillStyle = "white";
       }
+      ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
 
-      // Draw walls as black lines
       ctx.strokeStyle = "black";
-      ctx.lineWidth = 2; // Adjust line width for visibility
+      ctx.lineWidth = 2;
 
-      // Top wall
-      if (y === 0 || maze[y - 1][x] === 0) {
+      if (cell.N) {
         ctx.beginPath();
         ctx.moveTo(x * cellSize, y * cellSize);
         ctx.lineTo((x + 1) * cellSize, y * cellSize);
         ctx.stroke();
       }
-      // Left wall
-      if (x === 0 || maze[y][x - 1] === 0) {
+      if (cell.W) {
         ctx.beginPath();
         ctx.moveTo(x * cellSize, y * cellSize);
         ctx.lineTo(x * cellSize, (y + 1) * cellSize);
         ctx.stroke();
       }
-      // Bottom wall
-      if (y === rows - 1 || maze[y + 1][x] === 0) {
+      if (cell.S) {
         ctx.beginPath();
         ctx.moveTo(x * cellSize, (y + 1) * cellSize);
         ctx.lineTo((x + 1) * cellSize, (y + 1) * cellSize);
         ctx.stroke();
       }
-      // Right wall
-      if (x === cols - 1 || maze[y][x + 1] === 0) {
+      if (cell.E) {
         ctx.beginPath();
         ctx.moveTo((x + 1) * cellSize, y * cellSize);
         ctx.lineTo((x + 1) * cellSize, (y + 1) * cellSize);
@@ -212,20 +228,8 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function drawMazeVisual() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      if (y === currentPosition[0] && x === currentPosition[1]) {
-        ctx.fillStyle = "yellow"; // Highlight the current cell
-      } else {
-        ctx.fillStyle = "white"; // Default cell color
-      }
-      ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-      ctx.strokeStyle = "black"; // Border color
-      ctx.strokeRect(x * cellSize, y * cellSize, cellSize, cellSize);
-    }
-  }
+function drawMazeVisual(point) {
+  drawMaze(point);
 }
 
 function solveMaze() {
@@ -233,7 +237,7 @@ function solveMaze() {
   // For now, just color a simple straight path for demo purposes
   ctx.fillStyle = "blue";
   for (let i = 0; i < rows; i++) {
-    if (maze[i][0] === 0) {
+    if (!maze[i][0].visited) {
       ctx.fillRect(0, i * cellSize, cellSize, cellSize);
     }
   }
